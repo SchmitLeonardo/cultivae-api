@@ -1,0 +1,22 @@
+{
+  "name": "cultivae-api",
+  "version": "1.0.0",
+  "description": "RESTful API for Cultivaê marketplace, selling products from small rural producers.",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "mysql2": "^2.3.3",
+    "jsonwebtoken": "^8.5.1",
+    "cors": "^2.8.5",
+    "body-parser": "^1.19.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  },
+  "author": "Your Name",
+  "license": "MIT"
+}
