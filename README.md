@@ -107,6 +107,8 @@ The first database initialization runs `sql/init.sql` automatically. If you chan
 | `DB_NAME` | MySQL database name | `cultivae_db` |
 | `JWT_SECRET` | Secret used to sign JWT tokens | required in production |
 
+The API also reads Railway's MySQL variables automatically: `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD` and `MYSQLDATABASE`.
+
 ## Deploy
 The project now includes a production `Dockerfile`, so you can deploy it on any host that supports Docker containers.
 
@@ -117,14 +119,10 @@ Recommended simple path:
 3. Deploy the API from the repository using the `Dockerfile`.
 4. Configure these production variables in the API service:
    ```
-   DB_HOST=<mysql-host>
-   DB_PORT=3306
-   DB_USER=<mysql-user>
-   DB_PASSWORD=<mysql-password>
-   DB_NAME=<mysql-database>
    JWT_SECRET=<long-random-secret>
    CORS_ORIGIN=<frontend-url-or-*>
    ```
+   If your provider does not expose Railway-compatible MySQL variables, also configure `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` and `DB_NAME`.
 5. Run `sql/init.sql` once in the production database.
 6. Open the public URL and test `GET /health`.
 
