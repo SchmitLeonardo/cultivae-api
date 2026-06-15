@@ -1,46 +1,34 @@
-const mysql = require('mysql2');
 const db = require('../config/database');
 
 const Order = {
-    create: (orderData, callback) => {
-        const query = 'INSERT INTO orders (user_id, product_id, quantity, status) VALUES (?, ?, ?, ?)';
-        db.query(query, [orderData.user_id, orderData.product_id, orderData.quantity, orderData.status], (err, results) => {
-            if (err) {
-                return callback(err);
-            }
-            callback(null, results.insertId);
-        });
+    create: async (orderData) => {
+        const [result] = await db.execute(
+            'INSERT INTO orders (user_id, product_id, quantity, status) VALUES (?, ?, ?, ?)',
+            [orderData.user_id, orderData.product_id, orderData.quantity, orderData.status || 'pending']
+        );
+
+        return result.insertId;
     },
 
-    getById: (orderId, callback) => {
-        const query = 'SELECT * FROM orders WHERE id = ?';
-        db.query(query, [orderId], (err, results) => {
-            if (err) {
-                return callback(err);
-            }
-            callback(null, results[0]);
-        });
+    getById: async (orderId) => {
+        const [rows] = await db.execute('SELECT * FROM orders WHERE id = ?', [orderId]);
+        return rows[0];
     },
 
-    getAll: (callback) => {
-        const query = 'SELECT * FROM orders';
-        db.query(query, (err, results) => {
-            if (err) {
-                return callback(err);
-            }
-            callback(null, results);
-        });
+    getAll: async () => {
+        const [rows] = await db.execute('SELECT * FROM orders');
+        return rows;
     },
 
-    updateStatus: (orderId, status, callback) => {
-        const query = 'UPDATE orders SET status = ? WHERE id = ?';
-        db.query(query, [status, orderId], (err, results) => {
-            if (err) {
-                return callback(err);
-            }
-            callback(null, results.affectedRows);
-        });
-    }
+    updateStatus: async (orderId, status) => {
+        const [result] = await db.execute('UPDATE orders SET status = ? WHERE id = ?', [status, orderId]);
+        return result.affectedRows;
+    },
+
+    delete: async (orderId) => {
+        const [result] = await db.execute('DELETE FROM orders WHERE id = ?', [orderId]);
+        return result.affectedRows;
+    },
 };
 
 module.exports = Order;

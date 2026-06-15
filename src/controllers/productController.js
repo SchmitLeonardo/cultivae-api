@@ -26,21 +26,30 @@ exports.getProductById = async (req, res) => {
 
 // Create a new product
 exports.createProduct = async (req, res) => {
-    const { name, description, price, producerId } = req.body;
+    const { name, description, price, stock = 0, producer_id, producerId } = req.body;
+    const producerIdValue = producer_id || producerId;
+
     try {
-        const [result] = await db.query('INSERT INTO products (name, description, price, producerId) VALUES (?, ?, ?, ?)', [name, description, price, producerId]);
-        res.status(201).json({ id: result.insertId, name, description, price, producerId });
+        const [result] = await db.query(
+            'INSERT INTO products (name, description, price, stock, producer_id) VALUES (?, ?, ?, ?, ?)',
+            [name, description, price, stock, producerIdValue]
+        );
+
+        res.status(201).json({ id: result.insertId, name, description, price, stock, producer_id: producerIdValue });
     } catch (error) {
-        res.status(500).json({ message: 'Error creating product', error });
+        res.status(500).json({ message: 'Error creating product', error: error.message });
     }
 };
 
 // Update a product
 exports.updateProduct = async (req, res) => {
     const { id } = req.params;
-    const { name, description, price } = req.body;
+    const { name, description, price, stock } = req.body;
     try {
-        const [result] = await db.query('UPDATE products SET name = ?, description = ?, price = ? WHERE id = ?', [name, description, price, id]);
+        const [result] = await db.query(
+            'UPDATE products SET name = ?, description = ?, price = ?, stock = ? WHERE id = ?',
+            [name, description, price, stock, id]
+        );
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Product not found' });
         }

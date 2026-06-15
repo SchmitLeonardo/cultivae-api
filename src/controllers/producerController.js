@@ -30,7 +30,7 @@ exports.getProductsByProducerId = async (req, res) => {
     const { id } = req.params;
     try {
         const products = await Producer.findProductsByProducerId(id);
-        if (products) {
+        if (products.length > 0) {
             res.status(200).json(products);
         } else {
             res.status(404).json({ message: 'No products found for this producer' });

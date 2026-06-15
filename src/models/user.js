@@ -1,33 +1,19 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const db = require('../config/database');
 
-const User = sequelize.define('User', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
+const User = {
+    findByUsername: async (username) => {
+        const [rows] = await db.execute('SELECT * FROM users WHERE username = ?', [username]);
+        return rows[0];
     },
-    username: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
+
+    create: async ({ username, email, password, role = 'consumer' }) => {
+        const [result] = await db.execute(
+            'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)',
+            [username, email, password, role]
+        );
+
+        return result.insertId;
     },
-    email: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-    },
-    password: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    role: {
-        type: DataTypes.ENUM('producer', 'consumer'),
-        allowNull: false,
-    },
-}, {
-    tableName: 'users',
-    timestamps: true,
-});
+};
 
 module.exports = User;
