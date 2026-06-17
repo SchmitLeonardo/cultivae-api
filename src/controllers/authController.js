@@ -72,8 +72,6 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   const { email, password } = req.body;
 
-  console.log("Email recebido:", email);
-
   if (!email || !password) {
     return res.status(400).json({ message: "E-mail e senha são obrigatórios" });
   }
@@ -82,24 +80,22 @@ const login = async (req, res) => {
     const [users] = await db.execute("SELECT * FROM users WHERE email = ?", [
       email,
     ]);
-    console.log("Usuários encontrados:", users.length);
 
     const user = users[0];
-    console.log("Verificando senha");
 
-    const isValidPassword = await verifyPassword(password, user.password);
-
-    console.log("Senha verificada");
-
-    if (!user || !isValidPassword) {
+    if (!user) {
       return res.status(401).json({
         message: "E-mail ou senha incorretos",
       });
     }
 
-    const verifyPassword = async (password, hash) => {
-      return bcrypt.compare(password, hash);
-    };
+    const isValidPassword = await verifyPassword(password, user.password);
+
+    if (!isValidPassword) {
+      return res.status(401).json({
+        message: "E-mail ou senha incorretos",
+      });
+    }
 
     const token = jwt.sign(
       {

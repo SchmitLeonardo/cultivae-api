@@ -1,10 +1,11 @@
 const db = require('../config/database');
+const { toSqlValue } = require('../utils/helpers');
 
 const Order = {
     create: async (orderData) => {
         const [result] = await db.execute(
             'INSERT INTO orders (user_id, product_id, quantity, status) VALUES (?, ?, ?, ?)',
-            [orderData.user_id, orderData.product_id, orderData.quantity, orderData.status || 'pending']
+            [toSqlValue(orderData.user_id), toSqlValue(orderData.product_id), toSqlValue(orderData.quantity), orderData.status || 'pending']
         );
 
         return result.insertId;
@@ -21,7 +22,7 @@ const Order = {
     },
 
     updateStatus: async (orderId, status) => {
-        const [result] = await db.execute('UPDATE orders SET status = ? WHERE id = ?', [status, orderId]);
+        const [result] = await db.execute('UPDATE orders SET status = ? WHERE id = ?', [toSqlValue(status), orderId]);
         return result.affectedRows;
     },
 

@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const { hasValue, toSqlValue } = require('../utils/helpers');
 
 // Get all products
 exports.getAllProducts = async (req, res) => {
@@ -29,10 +30,14 @@ exports.createProduct = async (req, res) => {
     const { name, description, price, stock = 0, producer_id, producerId } = req.body;
     const producerIdValue = producer_id || producerId;
 
+    if (!hasValue(name) || !hasValue(price) || !hasValue(producerIdValue)) {
+        return res.status(400).json({ message: 'name, price and producer_id are required' });
+    }
+
     try {
         const [result] = await db.query(
             'INSERT INTO products (name, description, price, stock, producer_id) VALUES (?, ?, ?, ?, ?)',
-            [name, description, price, stock, producerIdValue]
+            [name, toSqlValue(description), price, stock, producerIdValue]
         );
 
         res.status(201).json({ id: result.insertId, name, description, price, stock, producer_id: producerIdValue });
@@ -45,10 +50,15 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     const { id } = req.params;
     const { name, description, price, stock } = req.body;
+
+    if (!hasValue(name) || !hasValue(price) || !hasValue(stock)) {
+        return res.status(400).json({ message: 'name, price and stock are required' });
+    }
+
     try {
         const [result] = await db.query(
             'UPDATE products SET name = ?, description = ?, price = ?, stock = ? WHERE id = ?',
-            [name, description, price, stock, id]
+            [name, toSqlValue(description), price, stock, id]
         );
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Product not found' });

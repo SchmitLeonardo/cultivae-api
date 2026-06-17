@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const { toSqlValue } = require('../utils/helpers');
 
 const User = {
     findByUsername: async (username) => {
@@ -9,7 +10,7 @@ const User = {
     create: async ({ username, email, password, role = 'consumer' }) => {
         const [result] = await db.execute(
             'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)',
-            [username, email, password, role]
+            [toSqlValue(username), toSqlValue(email), toSqlValue(password), toSqlValue(role)]
         );
 
         return result.insertId;

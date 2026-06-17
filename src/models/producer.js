@@ -1,9 +1,10 @@
 const db = require('../config/database');
+const { toSqlValue } = require('../utils/helpers');
 
 const Producer = {
     create: async (producerData) => {
         const [result] = await db.execute('INSERT INTO producers (name, description, contact_info) VALUES (?, ?, ?)',
-            [producerData.name, producerData.description, producerData.contact_info]);
+            [toSqlValue(producerData.name), toSqlValue(producerData.description), toSqlValue(producerData.contact_info)]);
         return result.insertId;
     },
 
@@ -19,7 +20,7 @@ const Producer = {
 
     update: async (id, producerData) => {
         await db.execute('UPDATE producers SET name = ?, description = ?, contact_info = ? WHERE id = ?',
-            [producerData.name, producerData.description, producerData.contact_info, id]);
+            [toSqlValue(producerData.name), toSqlValue(producerData.description), toSqlValue(producerData.contact_info), id]);
     },
 
     delete: async (id) => {

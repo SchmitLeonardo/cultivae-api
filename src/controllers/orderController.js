@@ -1,12 +1,20 @@
 const Order = require('../models/order');
+const { hasValue } = require('../utils/helpers');
 
 // Create a new order
 exports.createOrder = async (req, res) => {
     try {
         const { user_id, product_id, quantity, userId, productId } = req.body;
+        const userIdValue = user_id || userId;
+        const productIdValue = product_id || productId;
+
+        if (!hasValue(userIdValue) || !hasValue(productIdValue) || !hasValue(quantity)) {
+            return res.status(400).json({ message: 'user_id, product_id and quantity are required' });
+        }
+
         const orderId = await Order.create({
-            user_id: user_id || userId,
-            product_id: product_id || productId,
+            user_id: userIdValue,
+            product_id: productIdValue,
             quantity,
         });
 
@@ -31,6 +39,11 @@ exports.updateOrderStatus = async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
+
+        if (!hasValue(status)) {
+            return res.status(400).json({ message: 'status is required' });
+        }
+
         const affectedRows = await Order.updateStatus(id, status);
 
         if (affectedRows === 0) {
