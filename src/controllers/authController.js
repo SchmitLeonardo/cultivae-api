@@ -52,12 +52,10 @@ const register = async (req, res) => {
       [username, email, hashedPassword, role],
     );
 
-    res
-      .status(201)
-      .json({
-        message: "User registered successfully",
-        userId: result.insertId,
-      });
+    res.status(201).json({
+      message: "User registered successfully",
+      userId: result.insertId,
+    });
   } catch (error) {
     if (error.code === "ER_DUP_ENTRY") {
       return res
@@ -74,18 +72,34 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   const { email, password } = req.body;
 
+  console.log("Email recebido:", email);
+
+  if (!email || !password) {
+    return res.status(400).json({ message: "E-mail e senha são obrigatórios" });
+  }
+
   try {
     const [users] = await db.execute("SELECT * FROM users WHERE email = ?", [
       email,
     ]);
+    console.log("Usuários encontrados:", users.length);
 
     const user = users[0];
+    console.log("Verificando senha");
 
-    if (!user || !verifyPassword(password, user.password)) {
+    const isValidPassword = await verifyPassword(password, user.password);
+
+    console.log("Senha verificada");
+
+    if (!user || !isValidPassword) {
       return res.status(401).json({
         message: "E-mail ou senha incorretos",
       });
     }
+
+    const verifyPassword = async (password, hash) => {
+      return bcrypt.compare(password, hash);
+    };
 
     const token = jwt.sign(
       {
