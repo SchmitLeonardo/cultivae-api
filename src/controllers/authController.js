@@ -12,20 +12,32 @@ const hashPassword = (password) => {
 };
 
 const verifyPassword = (password, storedPassword) => {
+  if (!storedPassword) {
+    return false;
+  }
+
   const [salt, storedHash] = storedPassword.split(":");
 
   if (!salt || !storedHash) {
-    return false;
+    return password === storedPassword;
   }
 
   const hash = crypto
     .pbkdf2Sync(password, salt, 100000, 64, "sha512")
     .toString("hex");
 
+  if (storedHash.length !== hash.length) {
+    return false;
+  }
+
   return crypto.timingSafeEqual(
     Buffer.from(storedHash, "hex"),
     Buffer.from(hash, "hex"),
   );
+};
+
+const passwordNeedsRehash = (storedPassword) => {
+  return !/^[0-9a-f]{32}:[0-9a-f]{128}$/i.test(storedPassword || "");
 };
 
 const getJwtSecret = () => {
@@ -70,16 +82,18 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const email = req.body.email?.trim();
+  const { password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ message: "E-mail e senha são obrigatórios" });
   }
 
   try {
-    const [users] = await db.execute("SELECT * FROM users WHERE email = ?", [
-      email,
-    ]);
+    const [users] = await db.execute(
+      "SELECT * FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1",
+      [email],
+    );
 
     const user = users[0];
 
@@ -97,6 +111,13 @@ const login = async (req, res) => {
       });
     }
 
+    if (passwordNeedsRehash(user.password)) {
+      await db.execute("UPDATE users SET password = ? WHERE id = ?", [
+        hashPassword(password),
+        user.id,
+      ]);
+    }
+
     const token = jwt.sign(
       {
         id: user.id,
@@ -111,7 +132,7 @@ const login = async (req, res) => {
       token,
       user: {
         id: user.id,
-        name: user.name,
+        username: user.username,
         email: user.email,
         role: user.role,
       },
